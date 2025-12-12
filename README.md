@@ -19,4 +19,5 @@ All the results for the study will be saved in the Results folder.
 Note: Joinpoint modelling has been calculated using the Surveillance Research Programme of NIH: https://surveillance.cancer.gov/joinpoint/
 The code in Scripts>6_AAPC only prepares the dataset to import it in the software.
 
+## Contact
 Any questions please contact apalomar@idiapjgol.org 
