@@ -1,14 +1,14 @@
 # Trends in incidence and prevalence of asthma in children and adolescents in Catalonia, Spain, 2010-2024: a large population-based cohort study
 
-##Authors
+## Authors
 Anna Palomar-Cros, Alicia Abellan, Berta Raventós, Andrea Pistillo, Carlen Reyes, Juan Luís García Rivero, Katia MC Verhamme, Elena Roel1, Talita Duarte-Salles
 
-##Affiliations
+## Affiliations
 Fundació Institut Universitari per a la recerca a l'Atenció Primària de Salut Jordi Gol i Gurina (IDIAPJGol), Barcelona, Spain
 Department of Medical Informatics, Erasmus University Medical Center, Rotterdam, The Netherlands.
 Servicio de Neumología, Hospital de Laredo, Cantabria, Spain.
 
-##Instructions
+## Instructions
 To run this code you will only need to interactuate with the CodeToRun script.
 You will need to add the connection details and specifications to connect to your CDM.
 The lock file contains all the package versions required to run sucesfully this code.
