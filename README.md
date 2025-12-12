@@ -1,7 +1,7 @@
 # Trends in incidence and prevalence of asthma in children and adolescents in Catalonia, Spain, 2010-2024: a large population-based cohort study
 
 ## Authors
-Anna Palomar-Cros, Alicia Abellan, Berta Raventós, Andrea Pistillo, Carlen Reyes, Juan Luís García Rivero, Katia MC Verhamme, Elena Roel1, Talita Duarte-Salles
+Anna Palomar-Cros, Alicia Abellan, Berta Raventós, Andrea Pistillo, Carlen Reyes, Juan Luís García Rivero, Katia MC Verhamme, Elena Roel, Talita Duarte-Salles
 
 ## Affiliations
 Fundació Institut Universitari per a la recerca a l'Atenció Primària de Salut Jordi Gol i Gurina (IDIAPJGol), Barcelona, Spain
