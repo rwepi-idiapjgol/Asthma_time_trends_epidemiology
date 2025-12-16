@@ -1,6 +1,6 @@
 # Codelistgenerator -------------------------------------------------------
 library(CodelistGenerator)
-getVocabVersion(cdm)
+getVocabVersion(cdm) #v5.0 27-FEB-25
 getVocabularies(cdm = cdm)
 getDomains(cdm)
 
@@ -9,6 +9,6 @@ asthma_codes <- getCandidateCodes(cdm=cdm,
                                   standardConcept = "Standard",
                                   searchNonStandard = FALSE,
                                   domains = "Condition")
-asthma_codes %>% glimpse()
-write.csv(asthma_codes, "//EPOFS/RWCancerEpi/ONGOING PROJECTS/Asthma - Time trends-20240621T085916Z-001/Asthma - Time trends/Timetrends_asthma/Updated_Analysis_17072024/Results/Outcome cohorts/asthma_dx_codes.csv", row.names = FALSE)
+asthma_codes |> glimpse()
+write.csv(asthma_codes, "E:/Asthma_time_trends/outcome_cohorts/asthma_dx_codes.csv", row.names = FALSE)
 

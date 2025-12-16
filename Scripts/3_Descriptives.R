@@ -15,17 +15,7 @@ rsvg_png(
 
 # DESCRIPTIVE OVERALL --------
 #table summarise characteristics for cohort 15 (all age groups and both sexes)
-cdm$denominator_all_table1 <- cdm$denominator_all |>
-  filter(cohort_definition_id==15) |>
-  left_join( # ADDING sdi
-    cdm$observation |>
-      filter(observation_source_value == "sdi") |>
-      filter(value_as_string %in% c("Q1", "Q2", "Q3", "Q4", "Q5", "R", "0N")) |>
-      select(person_id, value_as_string) |>
-      rename(subject_id = person_id, sdi = value_as_string),
-    by = "subject_id"
-  ) |>
-  mutate(sdi = ifelse(sdi == "0N", NA, sdi)) |>
+cdm$denominator_all_table1 <- cdm$denominator_sdi |>
   left_join( # ADDING NATIONALITY (both sdi and nationality in one join)
     cdm$observation |>
       filter(observation_source_value == "agr_nationality") |>
@@ -70,7 +60,7 @@ cdm$denominator_all_table1 <- cdm$denominator_all |>
 
 results_summarise <- cdm$denominator_all_table1 |>
   summariseCharacteristics(
-    cohortId = 15,
+    cohortId = 1,
     otherVariables = c("sdi", "region") #play with estimates
   )
 
@@ -91,14 +81,14 @@ print(doc, target = "Results/Descriptive/table1_overall.docx")
 # DESCRIPTIVE INC ASTHMA --------
 cdm$table1_asthma_inc <- cdm$outcome_table1  |>
  left_join( # ADDING sdi
-    cdm$observation |>
-      filter(observation_source_value == "sdi") |>
-      filter(value_as_string %in% c("Q1", "Q2", "Q3", "Q4", "Q5", "R", "0N")) |>
-      select(person_id, value_as_string) |>
-      rename(subject_id = person_id, sdi = value_as_string),
-    by = "subject_id"
-  ) |>
-  mutate(sdi = ifelse(sdi == "0N", NA, sdi)) |>
+   cdm$observation |>
+     filter(observation_source_value == "medea") |>
+     filter(value_as_string %in% c("U1", "U2", "U3", "U4", "U5", "R", "0N")) |>
+     select(person_id, value_as_string) |>
+     rename(subject_id = person_id, medea = value_as_string),
+   by = "subject_id"
+ ) |>
+  mutate(medea = ifelse(medea == "0N", NA, medea)) |>
   left_join( # ADDING NATIONALITY (both sdi and nationality in one join)
     cdm$observation |>
       filter(observation_source_value == "agr_nationality") |>
@@ -143,7 +133,7 @@ cdm$table1_asthma_inc <- cdm$outcome_table1  |>
 
 results_summarise_inc <- cdm$table1_asthma_inc |>
   summariseCharacteristics(
-  otherVariables = c("sdi", "region") #play with estimates
+  otherVariables = c("medea", "region") #play with estimates
   )
 
 table1_inc_asthma <- results_summarise_inc |>
