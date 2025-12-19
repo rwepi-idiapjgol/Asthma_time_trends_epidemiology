@@ -24,7 +24,7 @@ cdm <- generateDenominatorCohortSet(
 cdm$denominator_sdi <- cdm$denominator_sdi |>
   left_join( # ADDING MEDEA
     cdm$observation |>
-      filter(observation_source_value == "medea") |>
+      filter(observation_source_value == "qmedea11") |>
       filter(value_as_string %in% c("U1", "U2", "U3", "U4", "U5", "R", "0N")) |>
       select(person_id, value_as_string) |>
       rename(subject_id = person_id, sdi = value_as_string),

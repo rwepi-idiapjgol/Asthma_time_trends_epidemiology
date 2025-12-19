@@ -75,20 +75,20 @@ doc <- doc %>%
   body_add_flextable(table1)
 
 # Save the Word document
-print(doc, target = "Results/Descriptive/table1_overall.docx")
+print(doc, target = "Results/Descriptive/table1_overall_qmedea.docx")
 
 
 # DESCRIPTIVE INC ASTHMA --------
 cdm$table1_asthma_inc <- cdm$outcome_table1  |>
  left_join( # ADDING sdi
    cdm$observation |>
-     filter(observation_source_value == "medea") |>
+     filter(observation_source_value == "qmedea11") |>
      filter(value_as_string %in% c("U1", "U2", "U3", "U4", "U5", "R", "0N")) |>
      select(person_id, value_as_string) |>
-     rename(subject_id = person_id, medea = value_as_string),
+     rename(subject_id = person_id, qmedea11 = value_as_string),
    by = "subject_id"
  ) |>
-  mutate(medea = ifelse(medea == "0N", NA, medea)) |>
+  mutate(qmedea11 = ifelse(qmedea11 == "0N", NA, qmedea11)) |>
   left_join( # ADDING NATIONALITY (both sdi and nationality in one join)
     cdm$observation |>
       filter(observation_source_value == "agr_nationality") |>
@@ -133,7 +133,7 @@ cdm$table1_asthma_inc <- cdm$outcome_table1  |>
 
 results_summarise_inc <- cdm$table1_asthma_inc |>
   summariseCharacteristics(
-  otherVariables = c("medea", "region") #play with estimates
+  otherVariables = c("qmedea11", "region") #play with estimates
   )
 
 table1_inc_asthma <- results_summarise_inc |>
@@ -147,5 +147,5 @@ doc <- doc %>%
   body_add_flextable(table1_inc_asthma)
 
 # Save the Word document
-print(doc, target = "Results/Descriptive/table1_inc_asthma.docx")
+print(doc, target = "Results/Descriptive/table1_inc_asthma_qmedea.docx")
 
