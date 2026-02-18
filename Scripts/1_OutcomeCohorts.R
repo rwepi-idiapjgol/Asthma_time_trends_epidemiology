@@ -2,6 +2,7 @@
 print("Instanciating outcome cohort")
 
 outcome_cohorts <- CDMConnector::readCohortSet(here::here("outcome_cohorts"))
+#json with only the concept set (no other inclusion criteria)
 cdm <- CDMConnector::generateCohortSet(cdm,
                                        outcome_cohorts,
                                        name = "outcome_table",
@@ -14,8 +15,8 @@ cdm <- CDMConnector::generateCohortSet(cdm,
                                        overwrite=T)
 
 cdm$outcome_table1 <- cdm$outcome_table1 |>
-  requirePriorObservation(365) |>
-  requireDemographics(ageRange = c(0,17)) |>
+  requirePriorObservation(365) |> # we require prior observation
+  requireDemographics(ageRange = c(0,17)) |> #and age restriction
   requireInDateRange(dateRange = c(as.Date("2010-01-01"), as.Date("2024-12-31"))) |>
   requireIsFirstEntry() |>
   compute()

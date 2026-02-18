@@ -165,31 +165,75 @@ print("Saving results")
 #overall
 
 print("Plotting overall, age, sex")
-settings(inc_all) |> glimpse()
 
+# Prepare the data
 inc_all_plot <- inc_all |>
-  left_join(settings(inc_all), by="result_id")
+  left_join(settings(inc_all), by = "result_id")
 
 age_order <- c("0 to 17", "0 to 4", "5 to 9", "10 to 14", "15 to 17")
 
 inc_all_plot <- inc_all_plot |>
-  mutate(denominator_age_group_ordered = factor(denominator_age_group, levels = age_order, ordered = TRUE),
-         Sex = denominator_sex)
+  mutate(
+    denominator_age_group_ordered = factor(denominator_age_group, levels = age_order, ordered = TRUE),
+    Sex = denominator_sex
+  ) |>
+  filter(!Sex=="Both")
 
-plot_all <- plotIncidence(inc_all_plot, colour = "denominator_sex", facet="denominator_age_group_ordered", ribbon = TRUE) +
-  scale_fill_brewer(palette="Dark2") + scale_color_brewer(palette="Dark2") +
+# Overall plot (0-17)
+overall_plot <- inc_all_plot |>
+  filter(denominator_age_group == "0 to 17") |>
+  plotIncidence(colour = "denominator_sex", facet = NULL, ribbon = TRUE) +
+  scale_fill_brewer(palette = "Dark2") +
+  scale_color_brewer(palette = "Dark2") +
+  theme_minimal() +
   theme(
-    panel.grid.major.x = element_blank(),   # Remove vertical grid lines
-    panel.grid.minor.x = element_blank(),   # Remove minor vertical grid lines
-    panel.grid.major.y = element_line(linewidth = 0.5, linetype = 'dashed', colour = "grey80"), # Major horizontal grid lines
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_line(linewidth = 0.5, linetype = 'dashed', colour = "grey80"),
     panel.grid.minor.y = element_line(linewidth = 0.5, linetype = 'dashed', colour = "grey80"),
     axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
-    panel.border = element_blank(),
-    strip.background = element_blank(),
-    legend.position = "none"
+    strip.background = element_blank()
   )
 
-ggsave(here::here("Results/Incidence/IR_all.png"), plot = plot_all, width = 10, height = 6, bg = "white")
+# Age-stratified plots (0-4, 5-9, 10-14, 15-17)
+age_plots <- inc_all_plot |>
+  filter(denominator_age_group != "0 to 17") |>
+  plotIncidence(colour = "denominator_sex", facet = "denominator_age_group_ordered", ribbon = TRUE) +
+  scale_fill_brewer(palette = "Dark2") +
+  scale_color_brewer(palette = "Dark2") +
+  theme_minimal() +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_line(linewidth = 0.5, linetype = 'dashed', colour = "grey80"),
+    panel.grid.minor.y = element_line(linewidth = 0.5, linetype = 'dashed', colour = "grey80"),
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+    strip.background = element_blank()
+  )
+
+# Extract the legend from one plot
+legend <- get_legend(overall_plot + theme(legend.position = "bottom"))
+
+# Remove legends from individual plots
+overall_plot <- overall_plot + theme(legend.position = "none")
+age_plots <- age_plots + theme(legend.position = "none")
+
+# Arrange plots using cowplot
+final_plot <- plot_grid(
+  overall_plot,
+  age_plots,
+  ncol = 1,
+  rel_heights = c(1, 2)
+)
+
+# Add legend at the bottom
+final_plot_with_legend <- plot_grid(final_plot, legend, ncol = 1, rel_heights = c(1, 0.1))
+
+# Display
+final_plot_with_legend
+
+# Save it
+ggsave(here::here("Results/Incidence/IR_all.png"), plot = final_plot_with_legend, width = 7, height = 11, bg = "white")
 
 #sdi
 
@@ -198,9 +242,9 @@ print("Plotting sdi")
 inc_sdi |> glimpse()
 
 inc_sdi_clean <- inc_sdi |>
-  filter(!strata_level %in% c("overall", "NA", "R"))
+  filter(!strata_level %in% c("overall", "NA", "R", "Q2", "Q3", "Q4"))
 
-plot_sdi <- plotIncidence(inc_sdi_clean, colour = "sdi", ribbon = TRUE) +
+plot_sdi <- plotIncidence(inc_sdi_clean, colour = "sdi", ribbon = FALSE) +
   scale_fill_brewer(palette="Dark2") + scale_color_brewer(palette="Dark2") +
   theme(
     panel.grid.major.x = element_blank(),   # Remove vertical grid lines

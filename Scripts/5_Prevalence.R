@@ -11,7 +11,7 @@ prev_all <- estimatePointPrevalence(
 table_prev_all <- tablePrevalence(prev_all, type="tibble")
 tablePrevalenceAttrition(prev_all)
 
-# Function to convert to %, I don't think there is an easier way
+# Function to convert to %
 add_prevalence_ci <- function(data,
                               outcome_col = "[header_name]Estimate name\n[header_level]Outcome (N)",
                               denom_col   = "[header_name]Estimate name\n[header_level]Denominator (N)") {
@@ -150,30 +150,79 @@ write_xlsx(datasets, path = here::here("Results/Prevalence/PP_numbers.xlsx"))
 
 # Plots ------
 #overall
+# Prepare the data
 prev_all_plot <- prev_all |>
-  left_join(settings(prev_all), by="result_id")
+  left_join(settings(prev_all), by = "result_id")
 
 age_order <- c("0 to 17", "0 to 4", "5 to 9", "10 to 14", "15 to 17")
 
 prev_all_plot <- prev_all_plot |>
-  mutate(denominator_age_group_ordered = factor(denominator_age_group, levels = age_order, ordered = TRUE),
-         Sex = denominator_sex)|>
+  mutate(
+    denominator_age_group_ordered = factor(denominator_age_group, levels = age_order, ordered = TRUE)
+  ) |>
   filter(!denominator_sex=="Both")
 
-plot_prev_all <- plotPrevalence(prev_all_plot, colour = "denominator_sex", facet="denominator_age_group_ordered", ribbon = TRUE) +
-  scale_fill_brewer(palette="Dark2") + scale_color_brewer(palette="Dark2") +
+# Overall prevalence plot (0-17)
+overall_prev_plot <- prev_all_plot |>
+  filter(denominator_age_group == "0 to 17") |>
+  plotPrevalence(colour = "denominator_sex", facet = NULL, ribbon = TRUE) +
+  scale_fill_brewer(palette = "Dark2") +
+  scale_color_brewer(palette = "Dark2") +
+  theme_minimal() +
   theme(
-    panel.grid.major.x = element_blank(),   # Remove vertical grid lines
-    panel.grid.minor.x = element_blank(),   # Remove minor vertical grid lines
-    panel.grid.major.y = element_line(linewidth = 0.5, linetype = 'dashed', colour = "grey80"), # Major horizontal grid lines
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_line(linewidth = 0.5, linetype = 'dashed', colour = "grey80"),
     panel.grid.minor.y = element_line(linewidth = 0.5, linetype = 'dashed', colour = "grey80"),
     axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
-    panel.border = element_blank(),
-    strip.background = element_blank(),
-    legend.position = "none"
+    strip.background = element_blank()
   )
 
-ggsave(here::here("Results/Prevalence/Prev_all.png"), plot = plot_prev_all, width = 10, height = 6, bg = "white")
+# Age-stratified prevalence plots (0-4, 5-9, 10-14, 15-17)
+age_prev_plots <- prev_all_plot |>
+  filter(denominator_age_group != "0 to 17") |>
+  plotPrevalence(colour = "denominator_sex", facet = "denominator_age_group_ordered", ribbon = TRUE) +
+  scale_fill_brewer(palette = "Dark2") +
+  scale_color_brewer(palette = "Dark2") +
+  theme_minimal() +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_line(linewidth = 0.5, linetype = 'dashed', colour = "grey80"),
+    panel.grid.minor.y = element_line(linewidth = 0.5, linetype = 'dashed', colour = "grey80"),
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+    strip.background = element_blank()
+  )
+
+# Extract the legend from one plot
+legend <- get_legend(overall_prev_plot + theme(legend.position = "bottom"))
+
+# Remove legends from individual plots
+overall_prev_plot <- overall_prev_plot + theme(legend.position = "none")
+age_prev_plots <- age_prev_plots + theme(legend.position = "none")
+
+# Arrange plots using cowplot
+final_plot <- plot_grid(
+  overall_prev_plot,
+  age_prev_plots,
+  ncol = 1,
+  rel_heights = c(1, 2)  # overall taller ratio
+)
+
+# Add legend at the bottom
+final_plot_with_legend <- plot_grid(final_plot, legend, ncol = 1, rel_heights = c(1, 0.1))
+
+# Display
+final_plot_with_legend
+
+# Save the figure
+ggsave(
+  here::here("Results/Prevalence/Prev_all.png"),
+  plot = final_plot_with_legend,
+  width = 7,
+  height = 8,
+  bg = "white"
+)
 
 #sdi
 
@@ -182,7 +231,7 @@ print("Plotting sdi")
 prev_sdi |> glimpse()
 
 prev_sdi_clean <- prev_sdi |>
-  filter(!strata_level %in% c("overall", "NA", "R"))
+  filter(!strata_level %in% c("overall", "NA"))
 
 plot_sdi <- plotPrevalence(prev_sdi_clean, colour = "sdi", ribbon = TRUE) +
   scale_fill_brewer(palette="Dark2") + scale_color_brewer(palette="Dark2") +

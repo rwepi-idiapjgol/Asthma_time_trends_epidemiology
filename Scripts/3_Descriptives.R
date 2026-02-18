@@ -2,9 +2,27 @@
 print("Plotting attrition")
 
 summary_flow <- cdm$denominator_all |>
-  summariseCohortAttrition(cohortId = 15) |> #all and both sexes
-  plotCohortAttrition(show = "subjects")
-summary_flow
+  summariseCohortAttrition(cohortId = 15)
+
+# custom labels
+reason_labels <- c(
+  "1" = "Individuals in database",
+  "2" = "Missing year of birth",
+  "3" = "Missing sex",
+  "4" = "Never aged <18 during 2010–2024",
+  "5" = "No observation during 2010–2024",
+  "6" = "Observed but never aged <18 while observed",
+  "7" = "Less than 12 months prior observation",
+  "10" = "No eligible time after applying age and prior observation criteria"
+)
+
+# Replace the strata_level column
+summary_flow <- summary_flow %>%
+  mutate(strata_level = reason_labels[additional_level])
+
+
+summary_flow <- plotCohortAttrition(summary_flow, show = "subjects")
+
 # Save grViz object as PNG
 rsvg_png(
   charToRaw(export_svg(summary_flow)),
@@ -14,7 +32,7 @@ rsvg_png(
 )
 
 # DESCRIPTIVE OVERALL --------
-#table summarise characteristics for cohort 15 (all age groups and both sexes)
+#table summarise characteristics
 cdm$denominator_all_table1 <- cdm$denominator_sdi |>
   left_join( # ADDING NATIONALITY (both sdi and nationality in one join)
     cdm$observation |>
@@ -52,16 +70,17 @@ cdm$denominator_all_table1 <- cdm$denominator_sdi |>
         "Melanèsia", "Micronèsia"
       ) ~ "Oceania",
 
-      TRUE ~ "Other/Unknown"
+      TRUE ~ "Spain"
     )
   ) |>
-  compute()  # Perform the final compute after all operations
+  compute()
 
 
 results_summarise <- cdm$denominator_all_table1 |>
   summariseCharacteristics(
     cohortId = 1,
-    otherVariables = c("sdi", "region") #play with estimates
+    ageGroup = list(c(0,4), c(5,9), c(10,14), c(15,17)),
+    otherVariables = c("sdi", "region")
   )
 
 table1 <- results_summarise |>
@@ -125,15 +144,15 @@ cdm$table1_asthma_inc <- cdm$outcome_table1  |>
         "Melanèsia", "Micronèsia"
       ) ~ "Oceania",
 
-      TRUE ~ "Other/Unknown"
+      TRUE ~ "Spain"
     )
   ) |>
-  compute()  # Perform the final compute after all operations
-
+  compute()
 
 results_summarise_inc <- cdm$table1_asthma_inc |>
   summariseCharacteristics(
-  otherVariables = c("qmedea11", "region") #play with estimates
+  ageGroup = list(c(0,4), c(5,9), c(10,14), c(15,17)),
+  otherVariables = c("qmedea11", "region")
   )
 
 table1_inc_asthma <- results_summarise_inc |>

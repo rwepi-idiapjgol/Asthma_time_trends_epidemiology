@@ -57,7 +57,7 @@ irr_age_comparison <- irr_age_data %>%
 
 irr_age_comparison
 
-# sdi ---------------
+# SDI ---------------
 print("Preparing dataset for IRR by SES")
 
 # Assign the dataset to a working variable
@@ -147,7 +147,7 @@ df_irr <- df_irr %>%
     CI_lower = CI_lower,
     CI_upper = CI_upper
   ) %>%
-  mutate(type = "sdi")
+  mutate(type = "SDI")
 
 # Combine all three datasets into one
 combined_df <- bind_rows(irr_sex, irr_age_comparison, df_irr)
@@ -158,13 +158,13 @@ head(combined_df)
 combined_df$group <- factor(
   combined_df$group,
   levels = c(
-    "R", "Q5", "Q4", "Q3", "Q2",
+    "Q5", "Q4", "Q3", "Q2", "R",
     "10 to 14", "5 to 9", "0 to 4",
     "Males"
   )
 )
 
-# PLOT IN A GGPLOT
+# PLOT IN A GGPLOT ----
 # Plot IRR with confidence intervals
 
 
@@ -207,3 +207,62 @@ IRR_plot
 ggsave(here::here("Results/Incidence/IRR.png"), plot = IRR_plot, width = 10, height = 6, bg = "white")
 
 
+
+# IRR FOR SDI IN 2010 VS 2014 ----
+#Clean dataset
+
+df <- table_sdi %>%
+  mutate(
+    sdi_display = na_if(sdi_display, ""),
+  ) %>%
+  fill(sdi_display, .direction = "down") %>%
+  filter(sdi_display %in% c("Q1","Q2","Q3","Q4","Q5","R"),
+         Year %in% c(2010, 2024))%>%
+  mutate(
+    person_years = as.numeric(str_remove_all(
+      `[header_name]Estimate name\n[header_level]Person-years`, ","
+    )),
+    outcomes = as.numeric(str_remove_all(
+      `[header_name]Estimate name\n[header_level]Outcome (N)`, ","
+    )),
+    IR = outcomes / person_years
+  )
+df
+# Compute IRR vs Q1 within each year
+ref <- df %>%
+  filter(sdi_display == "Q1") %>%
+  select(Year, IR_ref = IR, outcomes_ref = outcomes)
+
+df_irr <- df %>%
+  filter(sdi_display != "Q1") %>%
+  left_join(ref, by = "Year") %>%
+  mutate(
+    IRR = IR / IR_ref,
+    SE_log_IRR = sqrt(1/outcomes + 1/outcomes_ref),
+    CI_lower = exp(log(IRR) - 1.96 * SE_log_IRR),
+    CI_upper = exp(log(IRR) + 1.96 * SE_log_IRR),
+    group = sdi_display
+  )
+
+# order for plot
+df_irr$group <- factor(df_irr$group, levels = c("Q5","Q4","Q3","Q2", "R"))
+
+# Plot
+IRR_plot_sdi <- ggplot(df_irr, aes(x = IRR, y = group, color = factor(Year))) +
+  geom_point(size = 1, position = position_dodge(width = 0.4)) +
+  geom_errorbarh(
+    aes(xmin = CI_lower, xmax = CI_upper),
+    height = 0.2,
+    position = position_dodge(width = 0.4)
+  ) +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  labs(
+    title = "Incidence rate ratios by SDI (R, Q2–Q5 vs Q1), 2010 and 2024",
+    x = "IRR vs Q1",
+    y = "SDI category",
+    color = "Year"
+  ) +
+  theme_minimal(base_size = 12) +
+  scale_fill_brewer(palette="Dark2") + scale_color_brewer(palette="Dark2")
+
+ggsave(here::here("Results/Incidence/IRR_sdi.png"), plot = IRR_plot_sdi, width = 6.6, height = 4, bg = "white")
